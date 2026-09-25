@@ -1,4 +1,4 @@
-package br.edu.ifpb.sinam;
+package br.edu.ifpb.sinan;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

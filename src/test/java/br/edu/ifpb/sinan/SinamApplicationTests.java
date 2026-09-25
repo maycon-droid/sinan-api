@@ -1,4 +1,4 @@
-package br.edu.ifpb.sinam;
+package br.edu.ifpb.sinan;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
