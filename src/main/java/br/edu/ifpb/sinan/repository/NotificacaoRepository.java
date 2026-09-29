@@ -5,5 +5,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface repoNotificacao extends JpaRepository<Notificacao, Long> {
+public interface NotificacaoRepository extends JpaRepository<Notificacao, Long> {
 }
