@@ -9,34 +9,34 @@ import java.util.List;
 @Service
 public class AgravoService {
 
-    private final AgravoRepository notificacaoRepository;
+    private final AgravoRepository agravoRepository;
 
-    public AgravoService(AgravoRepository notificacaoRepository) {
-        this.notificacaoRepository = notificacaoRepository;
+    public AgravoService(AgravoRepository agravoRepository) {
+        this.agravoRepository = agravoRepository;
     }
 
-    public List<Agravo> getAllNotificacoes() {
-        return notificacaoRepository.findAll();
+    public List<Agravo> getAllAgravos() {
+        return agravoRepository.findAll();
     }
 
-    public Agravo salvarNotificacao(Agravo notificacao){
-        return notificacaoRepository.save(notificacao);
+    public Agravo salvarAgravo(Agravo agravo){
+        return agravoRepository.save(agravo);
     }
 
-    public Agravo getNotificacaoById(Long id) {
-        return notificacaoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Notificação não encontrada com o ID: " + id));
+    public Agravo getAgravoById(Long id) {
+        return agravoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Agravo não encontrado com o ID: " + id));
     }
 
-    public void deleteNotificacao(Long id) {
-        Agravo notificacao = getNotificacaoById(id);
-        notificacaoRepository.delete(notificacao);
+    public void deleteAgravo(Long id) {
+        Agravo agravo = getAgravoById(id);
+        agravoRepository.delete(agravo);
     }
 
-    public Agravo atualizarNotificacao(Long id, Agravo novosDados) {
-        if (notificacaoRepository.existsById(id)) {
+    public Agravo atualizarAgravo(Long id, Agravo novosDados) {
+        if (agravoRepository.existsById(id)) {
             novosDados.setId(id);
-            return notificacaoRepository.save(novosDados);
+            return agravoRepository.save(novosDados);
         }
         return null;
     }

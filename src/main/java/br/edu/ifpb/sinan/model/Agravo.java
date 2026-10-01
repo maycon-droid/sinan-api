@@ -3,11 +3,6 @@ package br.edu.ifpb.sinan.model;
 import br.edu.ifpb.sinan.enums.*;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
-
-public class InnerAgravo {
-
-    
-};
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,7 +13,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "tb_notificacao")
+@Table(name = "tb_agravos")
 public class Agravo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
