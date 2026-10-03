@@ -1,0 +1,13 @@
+package br.edu.ifpb.sinan.enums;
+
+public enum EscolaridadeEnum {
+    ANALFABETO,
+    FUNDAMENTAL_INCOMPLETO,
+    FUNDAMENTAL_COMPLETO,
+    MEDIO_INCOMPLETO,
+    MEDIO_COMPLETO,
+    SUPERIOR_INCOMPLETO,
+    SUPERIOR_COMPLETO,
+    NAO_APLICA,
+    IGNORADO
+}
