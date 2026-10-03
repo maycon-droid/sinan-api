@@ -1,5 +1,6 @@
 package br.edu.ifpb.sinan.service;
 
+import br.edu.ifpb.sinan.enums.*;
 import br.edu.ifpb.sinan.model.Agravo;
 import br.edu.ifpb.sinan.repository.AgravoRepository;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,12 @@ public class AgravoService {
     }
 
     public Agravo salvarAgravo(Agravo agravo){
+        if(agravo.getSexo != SexoEnum.FEMININO) {
+            agravo.setGestante(GestanteEnum.NAO_SE_APLICA);
+        }
+        else if(agravo.getSexo() == SexoEnum.FEMININO && agravo.getGestante() == null) {
+            throw new IllegalArgumentException("Campo 'gestante' é obrigatório para sexo feminino.");
+        }
         return agravoRepository.save(agravo);
     }
 

@@ -1,5 +1,15 @@
 package br.edu.ifpb.sinan.exception;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+
+import java.util.HashMap;
+import java.util.Map;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 @RestControllerAdvice
@@ -13,7 +23,7 @@ public class GlobalExceptionHandler {
             ex.getMessage()
         );
 
-        return new ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erro);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erro);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -27,6 +37,17 @@ public class GlobalExceptionHandler {
         resposta.put("status", HttpStatus.BAD_REQUEST.value());
         resposta.put("erro", "Erro de validação");
         resposta.put("camposInvalidos", erros);
-        return new ResponseEntity.Status(HttpStatus.BAD_REQUEST).body(resposta);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resposta);
     }
-}
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErroResposta> erroMensagemInvalida(HttpMessageNotReadableException ex) {
+        ErroResposta erro = new ErroResposta(
+            HttpStatus.BAD_REQUEST.value(),
+            "Erro de leitura da mensagem", 
+            "O corpo da requisição está mal formatado ou contém dados inválidos."
+        );
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erro);
+    }
+}   

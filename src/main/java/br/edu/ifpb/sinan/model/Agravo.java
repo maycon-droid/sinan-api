@@ -1,11 +1,11 @@
 package br.edu.ifpb.sinan.model;
 
 import br.edu.ifpb.sinan.enums.*;
+import br.edu.ifpb.sinan.enums.GestanteEnum;
+import br.edu.ifpb.sinan.enums.SexoEnum;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDate;
 
@@ -17,7 +17,7 @@ import java.time.LocalDate;
 public class Agravo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @NotNull(message = "O tipo de notificação não pode ser nulo.")
     private TipoNotificacaoEnum tipoNotificacao;
@@ -30,7 +30,6 @@ public class Agravo {
     private LocalDate dataNotificacao;
 
     @NotNull (message = "O UF da notificação não pode ser vazio.")
-    @Size(min = 2, max = 2, message = "O UF da notificação deve ter exatamente 2 caracteres.")
     private UfEnum ufNotificacao;
 
 
@@ -50,7 +49,6 @@ public class Agravo {
     private String nomeMae;
 
     @NotNull (message = "O município de residência não pode ser vazio.")
-    @Size(min = 2, max = 2, message = "O UF de residência deve ter exatamente 2 caracteres.")
     private UfEnum ufResidencia;
     private String municipioResidencia;
 

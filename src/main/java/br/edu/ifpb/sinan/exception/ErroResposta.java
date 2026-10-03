@@ -1,8 +1,9 @@
 package br.edu.ifpb.sinan.exception;
 
 import lombok.*;
+import java.time.LocalDateTime;
 
-@Getters 
+@Getter
 public class ErroResposta {
     private LocalDateTime timestamp;
     private int status;
