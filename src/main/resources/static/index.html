@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema SINAN - Notificação de Agravos</title>
+    <style>
+        :root {
+            --primary: #0056b3;
+            --primary-hover: #004085;
+            --secondary: #6c757d;
+            --danger: #dc3545;
+            --success: #28a745;
+            --warning-bg: #fff3cd;
+            --bg-color: #f4f6f9;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--bg-color);
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1, h2 { color: var(--primary); }
+
+        .card {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: var(--primary);
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 5px;
+            margin: 15px 0 10px 0;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .form-group input, .form-group select {
+            padding: 8px 10px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        .form-group input:disabled, .form-group select:disabled {
+            background-color: #e9ecef;
+            cursor: not-allowed;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        .btn-primary { background: var(--primary); color: #fff; }
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-secondary { background: var(--secondary); color: #fff; }
+        .btn-danger { background: var(--danger); color: #fff; padding: 5px 10px; font-size: 0.8em; }
+
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        /* Toggle Switch */
+        .switch-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: bold;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 46px;
+            height: 22px;
+        }
+
+        .switch input { opacity: 0; width: 0; height: 0; }
+
+        .slider {
+            position: absolute; cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc; transition: .3s; border-radius: 22px;
+        }
+
+        .slider:before {
+            position: absolute; content: "";
+            height: 16px; width: 16px; left: 3px; bottom: 3px;
+            background-color: white; transition: .3s; border-radius: 50%;
+        }
+
+        input:checked + .slider { background-color: var(--primary); }
+        input:checked + .slider:before { transform: translateX(24px); }
+
+        /* Tabela */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+        }
+
+        th, td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+            font-size: 0.9em;
+        }
+
+        th { background: var(--primary); color: #fff; }
+
+        .badge {
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            color: #fff;
+        }
+        .badge-duplicado { background: var(--danger); }
+
+        .alert {
+            padding: 10px 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        .alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>SINAN - Ficha de Notificação Compulsória</h1>
+
+    <div id="msgAlert" class="alert"></div>
+
+    <!-- FORMULÁRIO COMPLETO -->
+    <div class="card">
+        <h2 id="formTitle">Nova Notificação</h2>
+        <form id="formAgravo" onsubmit="salvarAgravo(event)">
+            <input type="hidden" id="id">
+
+            <!-- 1. DADOS GERAIS -->
+            <div class="section-title">1. Dados Gerais</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Nº Notificação *</label>
+                    <input type="number" id="numeroNotificacao" required>
+                </div>
+                <div class="form-group">
+                    <label>Tipo de Notificação *</label>
+                    <select id="tipoNotificacao" required>
+                        <option value="">Selecione...</option>
+                        <option value="INDIVIDUAL">2 - Individual</option>
+                        <option value="NEGATIVA">1 - Negativa</option>
+                        <option value="SURTO">3 - Surto</option>
+                        <option value="TRACOMA">4 - Tracoma</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Agravo/Doença (CID) *</label>
+                    <input type="text" id="agravo" required placeholder="Ex: Dengue, Covid-19">
+                </div>
+                <div class="form-group">
+                    <label>Data da Notificação *</label>
+                    <input type="date" id="dataNotificacao" required>
+                </div>
+                <div class="form-group">
+                    <label>UF Notificação *</label>
+                    <select id="ufNotificacao" required></select>
+                </div>
+                <div class="form-group">
+                    <label>Município Notificação *</label>
+                    <input type="text" id="municipioNotificacao" required>
+                </div>
+                <div class="form-group">
+                    <label>Unidade Notificadora *</label>
+                    <input type="text" id="unidadeNotificadora" required placeholder="Ex: USF Centro">
+                </div>
+            </div>
+
+            <!-- 2. DADOS DO PACIENTE -->
+            <div class="section-title">2. Dados Pessoais do Paciente</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Data 1ºs Sintomas *</label>
+                    <input type="date" id="dataPrimeirosSintomas" required>
+                </div>
+                <div class="form-group">
+                    <label>Nome do Paciente *</label>
+                    <input type="text" id="nomePaciente" required maxlength="100">
+                </div>
+                <div class="form-group">
+                    <label>Data de Nascimento</label>
+                    <input type="date" id="dataNascimento" onchange="calcularIdadeEValidaGestante()">
+                </div>
+                <div class="form-group">
+                    <label>Idade (Anos)</label>
+                    <input type="number" id="idade" placeholder="Calculada auto" onchange="validarGestante()">
+                </div>
+                <div class="form-group">
+                    <label>Sexo *</label>
+                    <select id="sexo" required onchange="validarGestante()">
+                        <option value="">Selecione...</option>
+                        <option value="MASCULINO">Masculino</option>
+                        <option value="FEMININO">Feminino</option>
+                        <option value="IGNORADO">Ignorado</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Gestante (RN02)</label>
+                    <select id="gestante">
+                        <option value="">Selecione...</option>
+                        <option value="PRIMEIRO_TRIMESTRE">1º Trimestre</option>
+                        <option value="SEGUNDO_TRIMESTRE">2º Trimestre</option>
+                        <option value="TERCEIRO_TRIMESTRE">3º Trimestre</option>
+                        <option value="IGNORADO">Ignorado</option>
+                        <option value="NAO_SE_APLICA">Não se aplica</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Nome da Mãe (RN01 - Duplicidade)</label>
+                    <input type="text" id="nomeMae" placeholder="Nome completo sem abreviações">
+                </div>
+            </div>
+
+            <!-- 3. DADOS DE RESIDÊNCIA (RN03) -->
+            <div class="section-title">3. Dados de Residência</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>País de Residência *</label>
+                    <input type="text" id="paisResidencia" required value="Brasil" oninput="validarResidencia()">
+                </div>
+                <div class="form-group">
+                    <label>UF Residência</label>
+                    <select id="ufResidencia"></select>
+                </div>
+                <div class="form-group">
+                    <label>Município Residência</label>
+                    <input type="text" id="municipioResidencia">
+                </div>
+            </div>
+
+            <!-- 4. DADOS DE INVESTIGAÇÃO -->
+            <div class="section-title">4. Dados de Investigação</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Data Investigação *</label>
+                    <input type="date" id="dataInvestigacao" required>
+                </div>
+                <div class="form-group">
+                    <label>Classificação Final</label>
+                    <input type="text" id="classificacaoFinal" placeholder="Ex: Confirmado, Descartado">
+                </div>
+                <div class="form-group">
+                    <label>Data Encerramento</label>
+                    <input type="date" id="dataEncerramento">
+                </div>
+            </div>
+
+            <div class="btn-group">
+                <button type="submit" class="btn-primary">Salvar Notificação</button>
+                <button type="button" class="btn-secondary" onclick="limparFormulario()">Limpar / Cancelar</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- LISTAGEM -->
+    <div class="card">
+        <div class="toolbar">
+            <h2>Notificações Cadastradas</h2>
+            <div class="switch-container">
+                <span>Filtrar Duplicidades (RN01)</span>
+                <label class="switch">
+                    <input type="checkbox" id="chkDuplicadas" onchange="carregarAgravos()">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Nº Notif.</th>
+                    <th>Agravo</th>
+                    <th>Paciente</th>
+                    <th>Mãe</th>
+                    <th>Data Notif.</th>
+                    <th>UF/Mun. Res.</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody id="tabelaAgravos">
+                <!-- Preenchido dinamicamente via JS -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    const API_URL = 'http://localhost:8080/agravos';
+    const UFS = ["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"];
+
+    // Popula selects de UF
+    document.addEventListener('DOMContentLoaded', () => {
+        const selectNotif = document.getElementById('ufNotificacao');
+        const selectRes = document.getElementById('ufResidencia');
+        
+        selectNotif.innerHTML = '<option value="">Selecione...</option>';
+        selectRes.innerHTML = '<option value="">Selecione...</option>';
+
+        UFS.forEach(uf => {
+            selectNotif.innerHTML += `<option value="${uf}">${uf}</option>`;
+            selectRes.innerHTML += `<option value="${uf}">${uf}</option>`;
+        });
+
+        carregarAgravos();
+    });
+
+    // RN02: Bloqueia/Ajusta o campo Gestante dependendo da idade e sexo
+    function validarGestante() {
+        const sexo = document.getElementById('sexo').value;
+        const idade = parseInt(document.getElementById('idade').value) || 0;
+        const selectGestante = document.getElementById('gestante');
+
+        if (sexo === 'MASCULINO' || (sexo === 'FEMININO' && idade < 7)) {
+            selectGestante.value = 'NAO_SE_APLICA';
+            selectGestante.disabled = true;
+        } else {
+            selectGestante.disabled = false;
+        }
+    }
+
+    function calcularIdadeEValidaGestante() {
+        const dataNascStr = document.getElementById('dataNascimento').value;
+        if (dataNascStr) {
+            const nasc = new Date(dataNascStr);
+            const hoje = new Date();
+            let idade = hoje.getFullYear() - nasc.getFullYear();
+            const m = hoje.getMonth() - nasc.getMonth();
+            if (m < 0 || (m === 0 && hoje.getDate() < nasc.getDate())) idade--;
+            document.getElementById('idade').value = idade >= 0 ? idade : 0;
+        }
+        validarGestante();
+    }
+
+    // RN03: Valida a necessidade de UF e Municipio conforme o País
+    function validarResidencia() {
+        const pais = document.getElementById('paisResidencia').value.trim();
+        const isBrasil = pais.toLowerCase() === 'brasil';
+        document.getElementById('ufResidencia').required = isBrasil;
+        document.getElementById('municipioResidencia').required = isBrasil;
+    }
+
+    // LISTAR / CARREGAR AGRAVOS
+    async function carregarAgravos() {
+        const apenasDuplicadas = document.getElementById('chkDuplicadas').checked;
+        const url = apenasDuplicadas ? `${API_URL}?duplicadas=true` : API_URL;
+
+        try {
+            const response = await fetch(url);
+            const dados = await response.json();
+            const tbody = document.getElementById('tabelaAgravos');
+            tbody.innerHTML = '';
+
+            if (dados.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;">Nenhum registro encontrado.</td></tr>`;
+                return;
+            }
+
+            dados.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${item.numeroNotificacao || item.id}</strong></td>
+                    <td>${item.agravo}</td>
+                    <td>${item.nomePaciente}</td>
+                    <td>${item.nomeMae || '-'}</td>
+                    <td>${item.dataNotificacao || '-'}</td>
+                    <td>${item.ufResidencia || '-'}${item.municipioResidencia ? ' / ' + item.municipioResidencia : ''}</td>
+                    <td>
+                        <button class="btn-secondary" onclick="editarAgravo(${item.id})">Editar</button>
+                        <button class="btn-danger" onclick="excluirAgravo(${item.id})">Excluir</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } catch (err) {
+            exibirAlerta('Erro ao conectar com o servidor backend: ' + err.message, true);
+        }
+    }
+
+    // SALVAR / ATUALIZAR
+    async function salvarAgravo(e) {
+        e.preventDefault();
+
+        const id = document.getElementById('id').value;
+        const payload = {
+            numeroNotificacao: document.getElementById('numeroNotificacao').value,
+            tipoNotificacao: document.getElementById('tipoNotificacao').value,
+            agravo: document.getElementById('agravo').value,
+            dataNotificacao: document.getElementById('dataNotificacao').value,
+            ufNotificacao: document.getElementById('ufNotificacao').value,
+            municipioNotificacao: document.getElementById('municipioNotificacao').value,
+            unidadeNotificadora: document.getElementById('unidadeNotificadora').value,
+
+            dataPrimeirosSintomas: document.getElementById('dataPrimeirosSintomas').value,
+            nomePaciente: document.getElementById('nomePaciente').value,
+            dataNascimento: document.getElementById('dataNascimento').value || null,
+            idade: document.getElementById('idade').value ? parseInt(document.getElementById('idade').value) : null,
+            sexo: document.getElementById('sexo').value,
+            gestante: document.getElementById('gestante').value || null,
+            nomeMae: document.getElementById('nomeMae').value || null,
+
+            paisResidencia: document.getElementById('paisResidencia').value,
+            ufResidencia: document.getElementById('ufResidencia').value || null,
+            municipioResidencia: document.getElementById('municipioResidencia').value || null,
+
+            dataInvestigacao: document.getElementById('dataInvestigacao').value,
+            classificacaoFinal: document.getElementById('classificacaoFinal').value || null,
+            dataEncerramento: document.getElementById('dataEncerramento').value || null
+        };
+
+        const method = id ? 'PUT' : 'POST';
+        const url = id ? `${API_URL}/${id}` : API_URL;
+
+        try {
+            const res = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!res.ok) {
+                const erroObj = await res.json();
+                throw new Error(erroObj.detail || erroObj.message || 'Erro ao processar requisição.');
+            }
+
+            exibirAlerta(`Notificação ${id ? 'atualizada' : 'cadastrada'} com sucesso!`, false);
+            limparFormulario();
+            carregarAgravos();
+        } catch (err) {
+            exibirAlerta(err.message, true);
+        }
+    }
+
+    // PREENCHER FORMULÁRIO PARA EDIÇÃO
+    async function editarAgravo(id) {
+        try {
+            const res = await fetch(`${API_URL}/${id}`);
+            const item = await res.json();
+
+            document.getElementById('id').value = item.id;
+            document.getElementById('numeroNotificacao').value = item.numeroNotificacao;
+            document.getElementById('tipoNotificacao').value = item.tipoNotificacao;
+            document.getElementById('agravo').value = item.agravo;
+            document.getElementById('dataNotificacao').value = item.dataNotificacao;
+            document.getElementById('ufNotificacao').value = item.ufNotificacao;
+            document.getElementById('municipioNotificacao').value = item.municipioNotificacao;
+            document.getElementById('unidadeNotificadora').value = item.unidadeNotificadora;
+
+            document.getElementById('dataPrimeirosSintomas').value = item.dataPrimeirosSintomas;
+            document.getElementById('nomePaciente').value = item.nomePaciente;
+            document.getElementById('dataNascimento').value = item.dataNascimento;
+            document.getElementById('idade').value = item.idade;
+            document.getElementById('sexo').value = item.sexo;
+            document.getElementById('nomeMae').value = item.nomeMae;
+
+            document.getElementById('paisResidencia').value = item.paisResidencia;
+            document.getElementById('ufResidencia').value = item.ufResidencia;
+            document.getElementById('municipioResidencia').value = item.municipioResidencia;
+
+            document.getElementById('dataInvestigacao').value = item.dataInvestigacao;
+            document.getElementById('classificacaoFinal').value = item.classificacaoFinal;
+            document.getElementById('dataEncerramento').value = item.dataEncerramento;
+
+            validarGestante();
+            if (item.gestante) document.getElementById('gestante').value = item.gestante;
+
+            document.getElementById('formTitle').innerText = `Editar Notificação #${item.id}`;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        } catch (err) {
+            exibirAlerta('Erro ao buscar dados para edição', true);
+        }
+    }
+
+    // EXCLUIR
+    async function excluirAgravo(id) {
+        if (!confirm(`Deseja realmente excluir a notificação #${id}?`)) return;
+
+        try {
+            const res = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+            if (res.ok) {
+                exibirAlerta('Notificação excluída!', false);
+                carregarAgravos();
+            } else {
+                throw new Error('Falha ao excluir.');
+            }
+        } catch (err) {
+            exibirAlerta(err.message, true);
+        }
+    }
+
+    function limparFormulario() {
+        document.getElementById('formAgravo').reset();
+        document.getElementById('id').value = '';
+        document.getElementById('formTitle').innerText = 'Nova Notificação';
+        document.getElementById('gestante').disabled = false;
+        document.getElementById('paisResidencia').value = 'Brasil';
+    }
+
+    function exibirAlerta(msg, isError) {
+        const alertBox = document.getElementById('msgAlert');
+        alertBox.className = `alert ${isError ? 'alert-error' : 'alert-success'}`;
+        alertBox.innerText = msg;
+        alertBox.style.display = 'block';
+        setTimeout(() => alertBox.style.display = 'none', 5000);
+    }
+</script>
+</body>
+</html>
