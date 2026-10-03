@@ -1,53 +1,58 @@
 package br.edu.ifpb.sinan.exception;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.validation.FieldError;
+import org.springframework.http.ProblemDetail;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.http.converter.HttpMessageNotReadableException;
 
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-    
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ErroResposta> erroArgumentoIlegal(IllegalArgumentException ex) {
-        ErroResposta erro = new ErroResposta(
-            HttpStatus.BAD_REQUEST.value(),
-            "Regra de Negócio violada", 
-            ex.getMessage()
-        );
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erro);
-    }
-
+    // RFC 9457 para validações do @Valid
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, Object>> erroValidacao(MethodArgumentNotValidException ex) {
-        Map<String, String> erros = new HashMap<>();
-        for (FieldError fieldError : ex.getBindingResult().getFieldErrors()) {
-            erros.put(fieldError.getField(), fieldError.getDefaultMessage());
-        }
-
-        Map<String, Object> resposta = new HashMap<>();
-        resposta.put("status", HttpStatus.BAD_REQUEST.value());
-        resposta.put("erro", "Erro de validação");
-        resposta.put("camposInvalidos", erros);
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resposta);
-    }
-
-    @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ErroResposta> erroMensagemInvalida(HttpMessageNotReadableException ex) {
-        ErroResposta erro = new ErroResposta(
-            HttpStatus.BAD_REQUEST.value(),
-            "Erro de leitura da mensagem", 
-            "O corpo da requisição está mal formatado ou contém dados inválidos."
+    public ProblemDetail tratarErrosValidacao(MethodArgumentNotValidException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST, 
+                "Um ou mais campos estão inválidos."
         );
+        problemDetail.setTitle("Erro de Validação");
+        problemDetail.setType(URI.create("https://sinan.ifpb.edu.br/erros/validacao"));
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erro);
+        Map<String, String> erros = new HashMap<>();
+        ex.getBindingResult().getFieldErrors().forEach(error -> 
+            erros.put(error.getField(), error.getDefaultMessage())
+        );
+        problemDetail.setProperty("invalid-params", erros);
+
+        return problemDetail;
     }
-}   
+
+    // RFC 9457 para Regras de Negócio (IllegalArgumentException)
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ProblemDetail tratarRegraDeNegocio(IllegalArgumentException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST, 
+                ex.getMessage()
+        );
+        problemDetail.setTitle("Regra de Negócio Violada");
+        problemDetail.setType(URI.create("https://sinan.ifpb.edu.br/erros/regra-de-negocio"));
+        return problemDetail;
+    }
+
+    // RFC 9457 para JSON malformado
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ProblemDetail tratarJsonInvalido(HttpMessageNotReadableException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST, 
+                "O corpo da requisição contém JSON malformado ou valores incompatíveis."
+        );
+        problemDetail.setTitle("Requisição Inválida");
+        return problemDetail;
+    }
+}
