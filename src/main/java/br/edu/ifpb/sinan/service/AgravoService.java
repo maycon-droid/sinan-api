@@ -40,4 +40,13 @@ public class AgravoService {
         }
         return null;
     }
+
+    private void validarEAjustarGestante(Agravo agravo) {
+        if(agravo.getSexo() != SexoEnum.FEMININO) {
+            agravo.setGestante(GestanteEnum.NAO_SE_APLICA);
+        }
+        else if(agravo.getSexo() == SexoEnum.FEMININO && agravo.getGestante() == null) {
+            throw new IllegalArgumentException("Campo 'gestante' é obrigatório para sexo feminino.");
+        }
+    }
 }

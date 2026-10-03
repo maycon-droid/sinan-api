@@ -10,7 +10,7 @@ import org.springframework.http.ResponseEntity;
 
 @RestController
 @CrossOrigin("http://127.0.0.1:5500")
-@RequestMapping("/notificacoes")
+@RequestMapping("/agravos")
 public class AgravoController {
     private final AgravoService agravoService;
 
