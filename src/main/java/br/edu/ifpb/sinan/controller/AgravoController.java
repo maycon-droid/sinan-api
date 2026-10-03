@@ -19,8 +19,9 @@ public class AgravoController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Agravo>> getAllAgravos() {
-        List<Agravo> agravos = agravoService.getAllAgravos();
+
+    public ResponseEntity<List<Agravo>> listarAgravos(@RequestParam(required = false) Boolean duplicadas) {
+        List<Agravo> agravos = agravoService.listarAgravos(duplicadas);
         return ResponseEntity.ok(agravos);
     }
 
